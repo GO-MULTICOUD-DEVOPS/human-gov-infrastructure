@@ -10,7 +10,7 @@
 
 
 
-<p align="left"> <h2>Projeto Incrível</h2><br> <i><h4>Neste projeto baseado em um cenário do mundo real, executei a implementação de infraestrutura SaaS ‘reutilizável’ e ‘multi-tenant’ na AWS usando módulos Terraform.</i> </h4></p><br><br>
+<p align="left"> <h2>**Projeto Incrível**</h2><br> <i><h4>Neste projeto baseado em um cenário do mundo real, executei a implementação de infraestrutura SaaS ‘reutilizável’ e ‘multi-tenant’ na AWS usando módulos Terraform.</i> </h4></p><br><br>
 
 
 
