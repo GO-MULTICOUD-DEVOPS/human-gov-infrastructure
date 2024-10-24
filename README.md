@@ -2,7 +2,7 @@
 <img src="https://upload.wikimedia.org/wikipedia/en/a/a4/Flag_of_the_United_States.svg" width="30" height="20">[![Inglês](https://img.shields.io/badge/lang-English-blue)](README-en.md)
 
 
-<div align="center"><h1>#IMPLEMENTAÇÃO DE UMA INFRAESTRUTURA ‘SaaS’, ‘Multi-tenant’ e ‘Reutilizável’ NA AWS</h1> 
+<div align="center"><h1>IMPLEMENTAÇÃO DE UMA INFRAESTRUTURA ‘SaaS’, ‘Multi-tenant’ e ‘Reutilizável’ NA AWS</h1> 
 
 
 
@@ -10,11 +10,11 @@
 
 
 
-<p align="left"> <h2>**Projeto Incrível**</h2><br> <i><h4>Neste projeto baseado em um cenário do mundo real, executei a implementação de infraestrutura SaaS ‘reutilizável’ e ‘multi-tenant’ na AWS usando módulos Terraform.</i> </h4></p><br><br>
+<p align="left"> <h2>Projeto Incrível</h2><br> <i><h4>Neste projeto baseado em um cenário do mundo real, executei a implementação de infraestrutura SaaS ‘reutilizável’ e ‘multi-tenant’ na AWS usando módulos Terraform.</i> </h4></p><br><br>
 
 
 
-<div align="left"><h2>🔥 #Funcionalidades</h2></div>
+<div align="left"><h2>🔥 Funcionalidades</h2></div>
 
 
 <div align="left"><h4>🚀 Funcionalidade 1:</h4></div> 
@@ -41,7 +41,7 @@ Desenvolvimento de uma automação reutilizável para provisionamento e gerencia
 
 
 
-<div align="left"><h2>🌟 #Descrição</h2></div>
+<div align="left"><h2>🌟 Descrição</h2></div>
 
 <div align="left"><i><h4>A infraestrutura foi baseada em serviços AWS, como instâncias EC2, bancos de dados DynamoDB e buckets S3. Para garantir o armazenamento seguro dos arquivos de configuração do Terraform, utilizei o GitHub para gerir um controle de versão remoto, proporcionando a integração de equipes. Para o controle de concorrência, criei uma tabela separada no AWS DynamoDB, para armazenar o arquivo _humangov-terraform-state.lock.info_, e para proteger a infraestrutura contra possíveis acidentes, criei um bucket no AWS S3 para armazenar o arquivo _terraform.tfstate_.</i> </h4></div>
 
@@ -49,7 +49,7 @@ Desenvolvimento de uma automação reutilizável para provisionamento e gerencia
 
 
 
-<div align="left"><h2> 🛠️ #Instalação</h2></div>
+<div align="left"><h2> 🛠️ Instalação</h2></div>
 
 <div align="left"><h3>Instruções de como instalar e configurar o projeto.</h3></div>
 
@@ -123,7 +123,7 @@ output.tf
 
 
 
-<div align="left"><h2>🤝 #Contribuição</h2></div>
+<div align="left"><h2>🤝 Contribuição</h2></div>
 
 <div align="left"><h4>- Faça um fork do projeto</h4></div>
 
