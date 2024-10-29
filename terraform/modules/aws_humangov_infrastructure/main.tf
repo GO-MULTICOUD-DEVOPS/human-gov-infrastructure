@@ -45,6 +45,37 @@ resource "aws_instance" "state_ec2" {                                           
   vpc_security_group_ids = [aws_security_group.state_ec2_sg.id]                 //DEFININDO A SG INTERPOLANDO COM O RECURSO CRIADO ACIMA
   iam_instance_profile = aws_iam_instance_profile.s3_dynamodb_full_access_instance_profile.name   //ANEXANDO O INSTANCE_PROFILE NA INSTANCE EC2
 
+   provisioner "local-exec" {
+	  command = "sleep 30; ssh-keyscan ${self.private_ip} >> ~/.ssh/known_hosts"
+	        //"sleep 30;                                                          -> AGUARDAR 30 SEGUNDO ATÉ CONCLUIR A CRIAÇÃO DA VM
+          //ssh-keyscan                                                         -> IRÁ ESCANEAR A CHAVE PÚBLICA DENTRO DO RECURSO
+          //${self.private_ip}                                                  -> IRÁ PEGAR O IP PRIVADO DO RECURSO
+          //>> ~/.ssh/known_hosts"                                              -> IRÁ GRAVAR DENTRO DO KNOWN_HOST
+	}
+	
+	provisioner "local-exec" {
+	  command = "echo ${var.state_name} id=${self.id} ansible_host=${self.private_ip} ansible_user=ubuntu us_state=${var.state_name} aws_region=${var.region} aws_s3_bucket=${aws_s3_bucket.state_s3.bucket} aws_dynamodb_table=${aws_dynamodb_table.state_dynamodb.name} >> /etc/ansible/hosts"
+	        //"echo                                                               -> IRÁ GRAVAR TODAS AS VARIÁVEIS DENTRO DO ARQUIVO HOSTS NO ENDEREÇO: /etc/ansible/hosts.
+          //${var.state_name}                                                   -> IRÁ REGISTRAR A VARIÁVEL STATE_NAME, QUE SERÁ O NOME DO ESTADO
+          //id=${self.id}                                                       -> IRÁ REGISTRAR O ID DA MÁQUINA PARA, QUANDO COMANDADO O "terraform destroy", ESSE ID SERÁ EXCLUIDO AUTOMATICAMENTE
+          //ansible_host=${self.private_ip}                                     -> IRÁ SETAR O IP PRIVADO NA VARIÁVEL "ansible_host" 
+          //ansible_user=ubuntu                                                 -> IRÁ SETAR O NOME "UBUNTU" NA VARIÁVEL 'ansible_user" 
+          //us_state=${var.state_name}                                          -> IRÁ SETAR O NOME DO ESTADO NA VARIÁVEL "us_state" 
+          //aws_region=${var.region}                                            -> IRÁ SETAR QUAL A REGIÃO NA VARIÁVEL "aws_region"
+          //aws_s3_bucket=${aws_s3_bucket.state_s3.bucket}                      -> IRÁ SETAR O NOME DO BUCKET S3 NA VARIÁVEL "aws_s3_bucket"
+          //aws_dynamodb_table=${aws_dynamodb_table.state_dynamodb.name}        -> IRÁ SETAR O NOME DA TABELA DO DYNAMO_DB NA VARIÁVEL "aws_dynamodb_table"
+          //>> /etc/ansible/hosts"                                              -> ENDEREÇO ONDE SERÁ SETADO TODAS ESSAS VARIÁVEIS
+	}
+	
+	provisioner "local-exec" {
+	  command = "sed -i '/${self.id}/d' /etc/ansible/hosts"
+	        //"sed                                                                -> EDITA ARQUIVOS DE CONFIGURAÇÃO DO TERRAFORM
+          //-i '/${self.id}/                                                    -> IRÁ PESQUISAR O SELF.ID
+          ///etc/ansible/hosts"                                                 -> A PESQUISA SERÁ FEITA NESSE ENDEREÇO
+          //d'                                                                  -> DEPOIS DE PESQUISAR, O ID SERÁ DELETADO.
+	  when = destroy
+	}
+
   tags = {
     Name = "humangov-${var.state_name}"                                         //DEFININDO UMA TAG INTERPOLANDO COM A VARIÁVEL (state_name)  
   }
