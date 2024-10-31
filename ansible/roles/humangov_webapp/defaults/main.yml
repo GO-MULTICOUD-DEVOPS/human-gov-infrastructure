@@ -1,0 +1,6 @@
+#CRIAÇÃO DE VARIÁVEIS PADRÃO PARA O PROJETO
+---
+username: ubuntu                                                                    #USUÁRIO
+project_name: humangov                                                              #NOME DO PROJETO
+project_path: "/home/{{ username }}/{{ project_name }}"                             #ENDEREÇO DO PROJETO                                
+source_application_path: /home/ec2-user/environment/human-gov-application/src       #ORIGEM DAS INFORMAÇÕES DO PROJETO

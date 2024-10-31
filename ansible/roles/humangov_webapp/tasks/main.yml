@@ -1,0 +1,117 @@
+#SEQUÊNCIAS DE TAREFAS A SEREM REALIZADAS 
+---
+- name: Update and upgrade apt packages                                         #UPDATE E UPPGRADE UTILIZANDO O APT PACKAGES
+  apt:                                                                          #MÓDULO
+    upgrade: dist
+    update_cache: yes
+  become: yes
+
+#INSTALAÇÃO DE PACOTES
+- name: Install required packages
+  apt:                                                                          #MÓDULO
+    name:                                                                       #NOME DOS PACOTES
+      - nginx
+      - python3-pip
+      - python3-dev
+      - build-essential
+      - libssl-dev
+      - libffi-dev
+      - python3-setuptools
+      - python3-venv
+      - unzip
+    state: present                                                              #DEFININDO O ESTADO DESEJADO
+  become: yes                                                                   #DANDO PERMISSÃO NÍVEL ROOT
+
+#CONFIGURANDO O FIREWALL LOCAL DA MÁQUINA
+- name: Ensure UFW allows Nginx HTTP traffic                                    #UTILIZNADO O UNCOMPLICATED FIREWALL                        
+  ufw:                                                                          #MÓDULO        
+    rule: allow                                                                 #DEFININDO A REGRA DE PERMISSÃO    
+    name: 'Nginx HTTP'                                                          #NOME
+  become: yes                                                                   #DANDO PERMISSÃO NÍVEL ROOT
+#DANDO PERMISSÃO NÍVEL ROOT
+#CRIANDO O DIRETÓRIO DO PROJETO
+- name: Create project directory                                                #NOME DA EXECUÇÃO
+  file:                                                                         #MÓDULO                    
+    path: "{{ project_path }}"                                                  #SERÁ PUXADO DO ARQUIVO DEFAULTS/main.tf
+    state: directory                                                            #DEFININDO O TIPO DE CRIAÇÃO=DIRETÓRIO    
+    owner: "{{ username }}"                                                     #SERÁ PUXADO DO ARQUIVO DEFAULTS/main.tf
+    group: "{{ username }}"                                                     #SERÁ PUXADO DO ARQUIVO DEFAULTS/main.tf        
+    mode: '0755'                                                                #DEFINIÇÃO DAS PERMIÇÕES DE ACESSO
+  become: yes                                                                   #DANDO PERMISSÃO NÍVEL ROOT
+
+#CRIANDO UM AMBIENTE VIRTUAL COM PYTHON
+- name: Create Python virtual environment                                       #NOME DA EXECUÇÃO
+  command:                                                                      #MÓDULO
+    cmd: python3 -m venv {{ project_path }}/humangovenv                         #COMANDO A SER EXECUTADO            
+    creates: "{{ project_path }}/humangovenv"                                   #DEFININDO O CAMINHO ONDE SERÁ EXECUTADO O COMANDO
+
+#COPIANDO OS ARQUIVOS DA APLICAÇÃO PARA O DESTINO
+- name: Copy the application zip file to the destination                        #NOME DA EXECUÇÃO
+  copy:                                                                         #MÓDULO
+    src: "{{ source_application_path }}/humangov-app.zip"                       #ORIGEM DOS ARQUIVOS    
+    dest: "{{ project_path }}"                                                  #DESTINO DE ONDE SERÁ CRIADO - SERÁ PUXADO DO ARQUIVO DEFAULTS/main.tf
+    owner: "{{ username }}"                                                     #SERÁ PUXADO DO ARQUIVO DEFAULTS/main.tf
+    group: "{{ username }}"                                                     #SERÁ PUXADO DO ARQUIVO DEFAULTS/main.tf    
+    mode: '0644'                                                                #DEFINIÇÃO DAS PERMIÇÕES DE ACESSO
+  become: yes                                                                   #DANDO PERMISSÃO NÍVEL ROOT
+
+#DESCOMPACTANDO OS ARQUIVOS  
+- name: Unzip the application zip file                                          #NOME DA EXECUÇÃO
+  unarchive:                                                                    #MÓDULO    
+    src: "{{ project_path }}/humangov-app.zip"                                  #ORIGEM DOS ARQUIVOS
+    dest: "{{ project_path }}"                                                  #DESTINO DE ONDE SERÁ CRIADO
+    remote_src: yes                                                             #UTILIZANDO RECURSO REMOTO
+  notify: Restart humangov                                                      #RESTARTANDO O PROJETO COM BASE NO ARQUIVO DO HANDLERS
+  become: yes                                                                   #DANDO PERMISSÃO NÍVEL ROOT
+  
+#INSTALANDO OS PACOTES DO REQUIREMENTS NO AMBIENTE VIRTUAL
+- name: Install Python packages from requirements.txt into the virtual environment  #NOME DA EXECUÇÃO
+  pip:                                                                          #MÓDULO        
+    requirements: "{{ project_path }}/requirements.txt"                         #ORIGEM DOS ARQUIVOS
+    virtualenv: "{{ project_path }}/humangovenv"                                #DESTINO DE ONDE SERÁ INSTALADO
+    
+#CRIANDO UM SYTEM STATE PARA O GUNICORN
+- name: Create systemd service file for Gunicorn                                #NOME DA EXECUÇÃO
+  template:                                                                     #MÓDULO
+    src: humangov.service.j2                                                    #TEMPLATE 1
+    dest: /etc/systemd/system/{{ project_name }}.service                        #DESTINO
+  notify: Restart humangov                                                      #RESTARTANDO O PROJETO COM BASE NO ARQUIVO DO HANDLERS
+  become: yes                                                                   #DANDO PERMISSÃO NÍVEL ROOT
+  
+#HABILITANDO E ESTARTANDO O SERVIÇO GUNICORN
+- name: Enable and start Gunicorn service                                       #NOME DA EXECUÇÃO
+  systemd:                                                                      #MÓDULO
+    name: "{{ project_name }}"                                                  #NOME DO PROJETO
+    enabled: yes                                                                #COMANDO DE YES
+    state: started                                                              #DEFININDO O ESTADO DESEJADO
+  become: yes                                                                   #DANDO PERMISSÃO NÍVEL ROOT
+  
+#REMOVENDO O ARQUIVO DE CONFIGURAÇÃO DEFAULT DO NGINX
+- name: Remove the default nginx configuration file                             #NOME DA EXECUÇÃO
+  file:                                                                         #MÓDULO
+    path: /etc/nginx/sites-enabled/default                                      #CAMINHO DE ORIGEM DO RECURSO    
+    state: absent                                                               #DEFININDO O ESTADO DESEJADO
+  become: yes                                                                   #DANDO PERMISSÃO NÍVEL ROOT
+  
+#GARANTINDO AS PERMISSÕES DO DONO DO DIRETÓRIO
+- name: Change permissions of the user's home directory                         #NOME DA EXECUÇÃO
+  file:                                                                         #MÓDULO
+    path: "/home/{{ username }}"                                                #CAMINHO DE ORIGEM DO RECURSO
+    mode: '0755'                                                                #DEFINIÇÃO DAS PERMIÇÕES DE ACESSO    
+  become: yes                                                                   #DANDO PERMISSÃO NÍVEL ROOT
+  
+#CONFIGURANDO O NGINX PROXY
+- name: Configure Nginx to proxy requests                                       #NOME DA EXECUÇÃO        
+  template:                                                                     #MÓDULO
+    src: nginx.conf.j2                                                          #TEMPLATE 2
+    dest: /etc/nginx/sites-available/{{ project_name }}                         #DESTINO            
+  become: yes                                                                   #DANDO PERMISSÃO NÍVEL ROOT
+  
+#CRIANDO UM LINK SIMBÓLICO E RESTARTANDO O NGINX
+- name: Enable Nginx configuration                                              #NOME DA EXECUÇÃO
+  file:                                                                         #MÓDULO    
+    src: /etc/nginx/sites-available/{{ project_name }}                          #ORIGEM
+    dest: /etc/nginx/sites-enabled/{{ project_name }}                           #DESTINO
+    state: link                                                                 #CRIANDO UM LINK SIMBÓLICO
+  notify: Restart Nginx                                                         #RESTARTANDO O PROJETO COM BASE NO ARQUIVO DO HANDLERS
+  become: yes                                                                   #DANDO PERMISSÃO NÍVEL ROOT

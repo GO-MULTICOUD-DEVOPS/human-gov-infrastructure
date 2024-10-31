@@ -1,0 +1,4 @@
+#CRIANDO UMA PLAYBOOK
+- hosts: all                                                                    #DEFININDO TODOS OS HOSTS
+  roles:                                                                        #DEFININDO AS ROLES
+    - humangov_webapp

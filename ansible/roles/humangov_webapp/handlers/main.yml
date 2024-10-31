@@ -1,0 +1,15 @@
+#CRIANDO AÇÕES A SEREM EXECUTADAS QUANDO HOUVER MUDANÇAS NO RECURSO
+---
+#REINICIA O NGINX
+- name: Restart Nginx                           #NOME DO HANDLERS
+  systemd:                                      #MÓDULO
+    name: nginx                                 #NOME DO SERVIÇO
+    state: restarted                            #ESTADO DESEJADO
+  become: yes                                   #DANDO PERMISSÃO NÍVEL ROOT
+
+#REINICIA O HUMANGOV
+- name: Restart humangov                        #NOME DO HANDLERS
+  systemd:                                      #MÓDULO
+    name: humangov                              #NOME DO SERVIÇO
+    state: restarted                            #ESTADO DESEJADO
+  become: yes                                   #DANDO PERMISSÃO NÍVEL ROOT
