@@ -39,6 +39,7 @@ resource "aws_security_group" "state_ec2_sg" {                                  
 }
 
 resource "aws_instance" "state_ec2" {                                           //CRIANDO UMA INSTÂNCIA EC2 NA AWS
+  for_each = { for code in var.state_codes : code => code }                     //O TERRAFORM CRIARÁ UMA INSTÂNCIA DO RECURSO PARA CADA CÓDIGO DE ESTADO EM var.state_codes ("CA", "FL", "NV")
   ami                    = "ami-007855ac798b5175e"                              //DEFININDO A IMAGEM A SER INSTALADA NA VM
   instance_type          = "t2.micro"                                           //DEFININDO O TIPO DA VM
   key_name               = "humangov-ec2-key"                                   //DEFININDO A KEY-PAIR JA CRIADA NA CONSOLE
@@ -77,7 +78,7 @@ resource "aws_instance" "state_ec2" {                                           
 	}
 
   tags = {
-    Name = "humangov-${var.state_name}"                                         //DEFININDO UMA TAG INTERPOLANDO COM A VARIÁVEL (state_name)  
+    Name = "humangov-${each.key}"                                               //CRIA UM NOME ÚNICO PARA CADA INSTÂNCIA DO RECURSO COM BASE NA CHAVE ATUAL DO MAPA
   }
 }
 
@@ -117,7 +118,7 @@ resource "aws_iam_role" "s3_dynamodb_full_access_role" {                        
   name = "humangov-${var.state_name}-s3_dynamodb_full_access_role"              //DEFININDO NOME INTERPOLANDO COM A VARIÁVEL (state_name)
 
   assume_role_policy = <<EOF
-{ 
+{
   "Version": "2012-10-17",
   "Statement": [
     {
@@ -130,17 +131,27 @@ resource "aws_iam_role" "s3_dynamodb_full_access_role" {                        
     }
   ]
 }
-EOF 
+EOF
+
+                             //\\                                               //<<EOF==ENCAPSULANDO O CONTEÚDO DA POLÍTICA EM UMA STTRING
+                            //  \\                                              //"Version": "2012-10-17" == ESPECIFICANDO A VERSÃO DO DOCUMENTO DA POLÍTICA DE SEGURANÇA  
+                           //    \\                                             //"Statement" == DEFININDO UMA LISTA DE DECLARAÇÕES QUE COMPÕE A POLÍTICA  
+                          //_    _\\                                            //"Action": "sts:AssumeRole" == ESPECIFICA QUE ESSA PERMISSÃO É PARA PERMITIR A ASSUNÇÃO DE UMA ROLE
+                            #|  |#_ _ _ _ _ _                                   //"Principal" ==  INDICANDO QUEM ESTÁ AUTORIZANDO A SSUMIR ESSA ROLE
+                            #|_ _ _ _ _ _ _ _ |                                 //"Service": "ec2.amazonaws.com" == PERMITINDO QUE AS INSTÂNCIA EC2 DA AWS ASSUME ESSA ROLE
+                                                                                //"Effect": "Allow" == PERMITINDO A AÇÃO ESPECIFICADA
+                                                                                //"Sid": "" == É O ID DA DECLARAÇÃO, QUE SERVE COMO UM IDENTIFICADOR. NESSE CASO ESTÁ VAZIO
+                                                                                //EOF==FECHANDO O ENCAPSULAMENTO
 
   tags = {                                                                      
-        Name = "humangov-${var.state_name}"                                    
+        Name = "humangov-${var.state_name}"                                     //DEFININDO UMA TAG INTERPOLANDO COM A VARIÁVEL (state_name)                                     
   }  
   
 }
 
-resource "aws_iam_role_policy_attachment" "s3_full_access_role_policy_attachment" {       //ATACHANDO POLÍTICAS NA ROLE
-  role       = aws_iam_role.s3_dynamodb_full_access_role.name                             //ROLE DEFINIDA       
-  policy_arn = "arn:aws:iam::aws:policy/AmazonS3FullAccess"                               //POLÍTICA A SER ATACHADA  
+resource "aws_iam_role_policy_attachment" "s3_full_access_role_policy_attachment" {        //ATACHANDO POLÍTICAS NA ROLE
+  role       = aws_iam_role.s3_dynamodb_full_access_role.name                              //ROLE DEFINIDA       
+  policy_arn = "arn:aws:iam::aws:policy/AmazonS3FullAccess"                                //POLÍTICA A SER ATACHADA  
   
 }
 
